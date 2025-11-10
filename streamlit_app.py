@@ -1,36 +1,27 @@
+
 import streamlit as st
 
-st.title("🎈 My Streamlit new app")
+st.title("Rev Transcript Formatter")
 st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
+    "Input file (Word docs only, one at a time)."
 )
 
-if 'upload_button_clicked' not in st.session_state:
-    st.session_state.upload_button_clicked = False
-
-def click_upload_button():
-    st.session_state.upload_button_clicked = True
-
-st.button('Upload Document', on_click=click_upload_button)
-
-if st.session_state.upload_button_clicked:
-    uploaded_file = st.file_uploader("Choose a file", type=['docx']) # Specify accepted file types
-
-    if uploaded_file is not None:
-        st.success(f"File '{uploaded_file.name}' uploaded successfully!")
-        # You can now process the uploaded_file, e.g., read its content
-        # For example, to read as text:
-        # content = uploaded_file.read().decode("utf-8")
-        # st.write(content)
-
 from docx import Document
-from docx.shared import Pt
-from docx.shared import Inches
+from docx.shared import Pt, Inches
+import io
 
+def get_docx_bytes(document_object):
+    """
+    Saves a docx.document.Document object to an in-memory bytes buffer 
+    and returns the bytes.
+    """
+    bio = io.BytesIO()
+    document_object.save(bio)
+    return bio.getvalue()
 
-def convert_transcript(input_path, output_path):
+def convert_transcript():
 
-    doc = Document(input_path)
+    doc = Document(input_file)
     new_doc = Document()
 
     style = new_doc.styles['Normal']
@@ -75,8 +66,8 @@ def convert_transcript(input_path, output_path):
     p.add_run().add_break()
 
     paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+    
     i = 0
-
     while i < len(paragraphs):
         
         line = paragraphs[i]
@@ -109,7 +100,16 @@ def convert_transcript(input_path, output_path):
 
         i += 1
 
-    new_doc.save(output_path)
-    print(f"✅ Converted file saved as: {output_path}")
+    input_file_name = str(input_file.name)
+    input_file_name_docx = input_file_name.replace(".docx", "")
+    formatted_name = input_file_name_docx + ' formatted.docx'
+    #new_doc.save('formatted_name')
+    formatted_docx = get_docx_bytes(new_doc)
+    if formatted_docx:
+        st.download_button(label="Formatted. Download below.", data=formatted_docx, file_name= formatted_name,mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
-convert_transcript("C:/Users/djycm/Downloads/REV Example Mod.docx", "C:/Users/djycm/Downloads/transcript_converted3.docx")
+input_file = st.file_uploader("Choose a .docx file", type=['docx']) # Specify accepted file types
+
+if input_file is not None:
+    st.success(f"File '{input_file.name}' uploaded successfully!")
+    convert_transcript()
