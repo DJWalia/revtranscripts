@@ -106,7 +106,7 @@ def convert_transcript():
     #new_doc.save('formatted_name')
     formatted_docx = get_docx_bytes(new_doc)
     if formatted_docx:
-        st.download_button(label="Formatted. Download below.", data=formatted_docx, file_name= formatted_name,mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        st.download_button(label="Download Formatted Transcript", data=formatted_docx, file_name= formatted_name,mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 input_file = st.file_uploader("Choose a .docx file", type=['docx']) # Specify accepted file types
 
