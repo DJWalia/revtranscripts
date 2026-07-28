@@ -3,7 +3,7 @@ import streamlit as st
 
 st.title("Rev Transcript Formatter")
 st.write(
-    "Input file (Word docs only, one at a time)."
+    "Input file (Word docs only, multiple files allowed (200 MB Max Total Size)."
 )
 
 from docx import Document
@@ -11,17 +11,13 @@ from docx.shared import Pt, Inches
 import io
 
 def get_docx_bytes(document_object):
-    """
-    Saves a docx.document.Document object to an in-memory bytes buffer 
-    and returns the bytes.
-    """
     bio = io.BytesIO()
     document_object.save(bio)
     return bio.getvalue()
 
-def convert_transcript():
+def convert_transcript(file):
 
-    doc = Document(input_file)
+    doc = Document(file)
     new_doc = Document()
 
     style = new_doc.styles['Normal']
@@ -100,16 +96,17 @@ def convert_transcript():
 
         i += 1
 
-    input_file_name = str(input_file.name)
+    input_file_name = str(file.name)
     input_file_name_docx = input_file_name.replace(".docx", "")
     formatted_name = input_file_name_docx + ' formatted.docx'
-    #new_doc.save('formatted_name')
     formatted_docx = get_docx_bytes(new_doc)
-    if formatted_docx:
-        st.download_button(label="Download Formatted Transcript", data=formatted_docx, file_name= formatted_name,mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    return formatted_docx, formatted_name
 
-input_file = st.file_uploader("Choose a .docx file", type=['docx']) # Specify accepted file types
+input_file = st.file_uploader("Choose a .docx file", type=['docx'], accept_multiple_files=True)
 
 if input_file is not None:
-    st.success(f"File '{input_file.name}' uploaded successfully!")
-    convert_transcript()
+    for file in input_file:
+        formatted_docx, formatted_name = convert_transcript(file)
+        label = f"Download Formatted Transcript ({formatted_name})"
+        st.download_button(label=label, data=formatted_docx, file_name= formatted_name, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        
